@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  password    String
+  submissions Submission[]
+}
+
+model Question {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  languages   String[]
+  testCases   TestCase[]
+  submissions Submission[] // Add this for the reverse relation
+}
+
+model TestCase {
+  id          String   @id @default(cuid())
+  questionId  String
+  input       String
+  expected    String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  userId      String
+  questionId  String
+  language    String
+  code        String
+  status      String   // "PENDING", "SUCCESS", "FAILURE", "TIME_LIMIT_EXCEEDED"
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
